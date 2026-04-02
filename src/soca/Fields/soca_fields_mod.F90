@@ -25,7 +25,7 @@ use oops_variables_mod, only: oops_variables
 ! MOM6 / FMS modules
 use fms2_io_mod, only: open_file, close_file, read_data, &
                       register_restart_field, FmsNetcdfDomainFile_t, &
-                      write_restart, variable_exists
+                      write_restart, variable_exists, register_axis
 use MOM_remapping, only : remapping_CS, initialize_remapping, remapping_core_h, &
                           end_remapping
 use mpp_domains_mod, only : mpp_update_domains
@@ -977,8 +977,19 @@ subroutine soca_fields_write_rst(self, f_conf, vdate)
       end do
     end do
 
-    ! open file, register fields, write, and close
+    ! open file, register axes and fields, write, and close
     if (open_file(restart, domain_filename, "overwrite", self%geom%Domain%mpp_domain, is_restart=.true.)) then
+      call register_axis(restart, "xaxis_1", "x")
+      call register_axis(restart, "yaxis_1", "y")
+
+      ! register z-axis if any 3D fields exist
+      do n=1,size(vars)
+        if (vars(n)%afield%shape(1) > 1) then
+          call register_axis(restart, "zaxis_1", vars(n)%afield%shape(1))
+          exit
+        end if
+      end do
+
       n=0
       do f=1,size(self%fields)
         if (self%fields(f)%metadata%io_file /= domains(d)) cycle

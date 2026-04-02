@@ -19,7 +19,7 @@ use type_fieldset, only: fieldset_type
 use fms_mod, only : fms_init, fms_end
 use fms2_io_mod, only : open_file, close_file, read_data, &
                        register_restart_field, FmsNetcdfDomainFile_t, &
-                       write_restart
+                       write_restart, register_axis
 use MOM, only : MOM_control_struct, initialize_MOM, MOM_end, get_MOM_state_elements
 use MOM_restart, only :MOM_restart_CS ! NOTE remove this when updating MOM6
 use MOM_domains, only : MOM_domain_type, MOM_domains_init, MOM_infra_init, MOM_infra_end
@@ -638,6 +638,9 @@ subroutine soca_geom_write(self, f_conf)
   end do
 
   if (open_file(geom_restart, str, "overwrite", self%Domain%mpp_domain, is_restart=.true.)) then
+    call register_axis(geom_restart, "xaxis_1", "x")
+    call register_axis(geom_restart, "yaxis_1", "y")
+
     call register_restart_field(geom_restart, "lonh",    self%lonh,      ["xaxis_1"])
     call register_restart_field(geom_restart, "lath",    self%lath,      ["yaxis_1"])
     call register_restart_field(geom_restart, "lonq",    self%lonq,      ["xaxis_1"])
